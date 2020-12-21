@@ -14,19 +14,20 @@ def save_all_frames(video_path, dir_path, basename, ext='jpg'):
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_num = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     play_time = frame_num / fps
-
-    n = 0
-
+    
+    n=0
     while True:
         ret, frame = cap.read()
         #frame=cv2.rotate(frame,cv2.ROTATE_90_COUNTERCLOCKWISE)
         frame=cv2.rotate(frame,cv2.ROTATE_90_CLOCKWISE)
         if ret:
             cv2.imwrite('{}_{}.{}'.format(base_path, str(n).zfill(digit), ext), frame)
-            n += 1
+            n += 1 #nは画像になった枚数
         else:
             time=play_time/n
             ttime='{:.3f}'.format(time)
-            return
+            nu=str(n)
+            num=len(nu) #画像枚数が何桁か
+            return 
 
 save_all_frames('sample.MOV', 'sample-photo', 'sample', 'png')
