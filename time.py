@@ -14,24 +14,19 @@ def save_all_frames(video_path, dir_path, basename, ext='jpg'):
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_num = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     play_time = frame_num / fps
-    print("fps:",fps)
-    print("frame_num:",frame_num)
-    print("play_time:",play_time)
 
     n = 0
 
     while True:
         ret, frame = cap.read()
-        #frame=cv2.resize(frame,(450,750))
-        frame=cv2.rotate(frame,cv2.ROTATE_90_COUNTERCLOCKWISE)
-        #frame=cv2.rotate(frame,cv2.ROTATE_90_CLOCKWISE)
+        #frame=cv2.rotate(frame,cv2.ROTATE_90_COUNTERCLOCKWISE)
+        frame=cv2.rotate(frame,cv2.ROTATE_90_CLOCKWISE)
         if ret:
             cv2.imwrite('{}_{}.{}'.format(base_path, str(n).zfill(digit), ext), frame)
             n += 1
         else:
-            print("n:",n)
-            print("1枚あたりの時間:",play_time/n)
-            print("1秒あたりの枚数:",n/play_time)
+            time=play_time/n
+            ttime='{:.3f}'.format(time)
             return
 
-save_all_frames('movie/clap1.avi', 'clap', 'clap', 'png')
+save_all_frames('sample.MOV', 'sample-photo', 'sample', 'png')
