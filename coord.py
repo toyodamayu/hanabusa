@@ -4,6 +4,7 @@ import time
 import argparse
 import numpy as np
 import csv
+import tim
 from scipy.ndimage.filters import gaussian_filter
 
 import chainer
@@ -519,116 +520,75 @@ class PoseDetector(object):
 
 
 def draw_person_pose(orig_img, poses):
-    if len(poses) == 0:
-        return orig_img
-
-    limb_colors = [
-        [0, 255, 0], [0, 255, 85], [0, 255, 170], [0, 255, 255], [0, 170, 255],
-        [0, 85, 255], [255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0.],
-        [255, 0, 85], [170, 255, 0], [85, 255, 0], [170, 0, 255.], [0, 0, 255],
-        [0, 0, 255], [255, 0, 255], [170, 0, 255], [255, 0, 170],
-    ]
-
     joint_colors = [
         [255, 0, 0], [255, 85, 0], [255, 170, 0], [255, 255, 0], [170, 255, 0],
         [85, 255, 0], [0, 255, 0], [0, 255, 85], [0, 255, 170], [0, 255, 255],
         [0, 170, 255], [0, 85, 255], [0, 0, 255], [85, 0, 255], [170, 0, 255],
         [255, 0, 255], [255, 0, 170], [255, 0, 85]]
 
-    canvas = orig_img.copy()
-
-    # limbs
-    for pose in poses.round().astype('i'):
-        for i, (limb, color) in enumerate(zip(params['limbs_point'], limb_colors)):
-            if i != 9 and i != 13:  # don't show ear-shoulder connection
-                limb_ind = np.array(limb)
-                if np.all(pose[limb_ind][:, 2] != 0):
-                    joint1, joint2 = pose[limb_ind][:, :2]
-                    cv2.line(canvas, tuple(joint1), tuple(joint2), color, 2)
-
     # joints
     xcoord=[]
     ycoord=[]
     for pose in poses.round().astype('i'):
         for i, ((x, y, v), color) in enumerate(zip(pose, joint_colors)):
-            if v != 0:
-                cv2.circle(canvas, (x, y), 3, color, -1)
-            #print(x)
-
-            if i==0:
+            if i==0: #鼻
                 x0=x
                 y0=y
 
-            if i==1:
+            if i==1: #首　　
                 x1=x
                 y1=y
 
-            if i==2:
+            if i==2: #右肩
                 x2=x
                 y2=y
 
-            if i==3:
+            if i==3: #右肘
                 x3=x
                 y3=y
 
-            if i==4:
+            if i==4: #右手
                 x4=x
                 y4=y
 
-            if i==5:
+            if i==5: #左肩
                 x5=x
                 y5=y
 
-            if i==6:
+            if i==6: #左肘
                 x6=x
                 y6=y
 
-            if i==7:
+            if i==7: #左手
                 x7=x
                 y7=y
 
-            if i==8:
+            if i==8: #右腰
                 x8=x
                 y8=y
 
-            if i==9:
+            if i==9: #右膝
                 x9=x
                 y9=y
 
-            if i==10:
+            if i==10: #右足
                 x10=x
                 y10=y
 
-            if i==11:
+            if i==11: #左腰
                 x11=x
                 y11=y
 
-            if i==12:
+            if i==12: #左膝
                 x12=x
                 y12=y
 
-            if i==13:
+            if i==13: #左足
                 x13=x
                 y13=y
 
-            if i==14:
-                x14=x
-                y14=y
-
-            if i==15:
-                x15=x
-                y15=y
-
-            if i==16:
-                x16=x
-                y16=y
-
-            if i==17:
-                x17=x
-                y17=y
-
-    xcoord.append([photo,x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17])
-    ycoord.append([photo,y0,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13,y14,y15,y16,y17])
+    xcoord.append([photo,x0,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13])
+    ycoord.append([photo,y0,y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13])
 
     with open("x.csv", "a", newline="", encoding="utf-16") as f: 
         writer = csv.writer(f, dialect="excel")
@@ -637,31 +597,29 @@ def draw_person_pose(orig_img, poses):
         writer = csv.writer(f, dialect="excel")
         writer.writerows(ycoord)
 
-    return canvas
-
 if __name__ == '__main__':
 
-    #timelist.append(['何枚目','座標'])
-    for photo in range(95):
+    for photo in range(tim.count()):
+        parser = argparse.ArgumentParser(description='Pose detector')
         print("[",photo,"枚目]")
         arch=('posenet')
         weights=('models/coco_posenet.npz')
-        #image=('yosa-photo/person.png')
+        parser.add_argument('--gpu', '-g', type=int, default=-1, help='GPU ID (negative value indicates CPU)')
+        parser.add_argument('--precise', action='store_true', help='do precise inference')
+        args = parser.parse_args()
 
         chainer.config.enable_backprop = False
         chainer.config.train = False
 
         # load model
-        pose_detector = PoseDetector(arch, weights)
+        pose_detector = PoseDetector(arch, weights,device=args.gpu, precise=args.precise)
 
         # read image
-        img = cv2.imread('sample-photo/sample_{0:02d}.png'.format(photo))
+        img = cv2.imread('yosa-photo/yosa_{0:03d}.png'.format(photo))
 
         # inference
         poses, _ = pose_detector(img)
 
         # draw and save image
         img = draw_person_pose(img, poses)
-        print('Saving result into result.png...')
-        cv2.imwrite('sample-bone/sample_bone_{0:02}.png'.format(photo), img)
     
